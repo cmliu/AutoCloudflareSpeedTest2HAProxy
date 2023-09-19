@@ -39,8 +39,15 @@ defaults
     maxconn                 3000
 
 listen console
-    bind 0.0.0.0:8999
+    bind 0.0.0.0:8999 #HAProxy负载均衡详细信息面板
     mode http
     stats refresh 30s
     stats uri /
     stats admin if TRUE
+
+#listen 9000
+#    mode tcp
+#    bind 0.0.0.0:9000
+#    server 172.67.213.83:80 172.67.213.83:80 weight 5 check inter 1500 rise 1 fall 3 
+#    server 104.21.77.244:80 104.21.77.244:80 weight 5 check inter 1500 rise 1 fall 3 
+
