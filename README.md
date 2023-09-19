@@ -10,7 +10,7 @@
 ## 一键脚本
  
 ``` bash
-wget -N -P ACFST2HAProxy https://raw.githubusercontent.com/cmliu/BreadcrumbsAutoCloudflareSpeedTest2HAProxy/main/ACFST2HAProxy.sh && cd ACFST2HAProxy && chmod +x ACFST2HAProxy.sh && bash ACFST2HAProxy.sh
+wget -N -P ACFST2HAProxy https://raw.githubusercontent.com/cmliu/AutoCloudflareSpeedTest2HAProxy/main/ACFST2HAProxy.sh && cd ACFST2HAProxy && chmod +x ACFST2HAProxy.sh && bash ACFST2HAProxy.sh
 ```
 
 自定义测速命令
