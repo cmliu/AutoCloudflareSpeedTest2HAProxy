@@ -14,6 +14,17 @@ speedurl="speed.cloudflare.com/__down?bytes=$((speedtestMB * 1000000))" #官方�
 proxygithub="https://ghproxy.com/" #反代github加速地址，如果不需要可以将引号内容删除，如需修改请确保/结尾 例如"https://ghproxy.com/"
 ports=(443 2053 2083 2087 2096 8443) #判断协议使用,勿动
 
+# 读取/etc/os-release文件中的ID字段
+os_id=$(awk -F= '/^ID=/{print $2}' /etc/os-release)
+Ubuntu=0
+# 检查不同的操作系统类型
+if [ "$os_id" == "ubuntu" ]; then
+    echo "这是一个Ubuntu系统"
+	Ubuntu=1
+else
+    echo "非Ubuntu环境,尝试使用openwrt环境运行"
+fi
+
 #带有自定义测速端口参数
 if [ -n "$1" ]; then 
     port="$1"
@@ -37,19 +48,34 @@ fi
 update_gengxinzhi=0
 apt_update() {
     if [ "$update_gengxinzhi" -eq 0 ]; then
-        sudo apt update
+		
+		if [ "$Ubuntu" -eq 1 ]; then
+			sudo apt update
+		else
+			opkg update
+		fi
+		
         update_gengxinzhi=$((update_gengxinzhi + 1))
     fi
 }
 
 # 检测并安装软件函数
 apt_install() {
-    if ! command -v "$1" &> /dev/null; then
-        echo "$1 未安装，开始安装..."
-        apt_update
-        sudo apt install "$1" -y
-        echo "$1 安装完成！"
-    fi
+
+	if ! command -v "$1" &> /dev/null; then
+		echo "$1 未安装，开始安装..."
+		apt_update
+		
+		if [ "$Ubuntu" -eq 1 ]; then
+			sudo apt install "$1" -y
+		else
+			oopkg install "$1"
+		fi
+		
+		echo "$1 安装完成！"
+	fi
+
+	
 }
 
 apt_install curl
@@ -63,7 +89,7 @@ download_CloudflareST() {
     # 下载文件到当前目录
     curl -L -o CloudflareST_linux_amd64.tar.gz "${proxygithub}https://github.com/XIU2/CloudflareSpeedTest/releases/download/$latest_version/CloudflareST_linux_amd64.tar.gz"
     # 解压CloudflareST文件到当前目录
-    sudo tar -xvf CloudflareST_linux_amd64.tar.gz CloudflareST -C /
+    tar -xvf CloudflareST_linux_amd64.tar.gz CloudflareST -C /
 	rm CloudflareST_linux_amd64.tar.gz
 
 }
@@ -142,6 +168,20 @@ else
     echo "你的IP地址是 $local_IP 地址判断请求失败，请自行确认为本机网络未使用代理..."
 fi
 
+# 检查haproxy用户是否存在
+if ! id -u haproxy > /dev/null 2>&1; then
+    echo "haproxy用户不存在，正在创建..."
+    useradd -M -s /usr/sbin/nologin haproxy
+    echo "haproxy用户已创建."
+fi
+
+# 检查haproxy组是否存在
+if ! getent group haproxy > /dev/null 2>&1; then
+    echo "haproxy组不存在，正在创建..."
+    groupadd haproxy
+    echo "haproxy组已创建."
+fi
+
 speedurl=${speedurlhttp}${speedurl}
 result_csv="log/${port}.csv"
 Require="测速端口${port}, 需求${STcount}个优选IP, 下载速度至少${speedlower}mb/s, 延迟不超过${STmax}ms"
@@ -172,22 +212,32 @@ cat "$tmpfile" >> haproxy.cfg
 # 删除临时文件
 rm "$tmpfile"
 
-sudo cp haproxy.cfg /etc/haproxy/
-
-# 检测haproxy服务是否运行
-if systemctl is-active --quiet haproxy; then
-  # haproxy服务正在运行，重启服务
-  systemctl restart haproxy
+if [ "$Ubuntu" -eq 1 ]; then
+	sudo cp haproxy.cfg /etc/haproxy/
 else
-  # haproxy服务没有运行，启动服务
-  systemctl start haproxy
+	cp haproxy.cfg /etc/
 fi
 
-LocalIP=$(ip addr show | grep "inet " | grep -v 127.0.0.1 | awk '{print $2}' | cut -d '/' -f 1)
+# 检查haproxy服务的状态
+service haproxy status >/dev/null 2>&1
+clear
+# 检查服务的返回状态码
+if [ $? -eq 0 ]; then
+    echo "HAProxy服务正在运行，重启服务"
+	service haproxy restart
+else
+    echo "HAProxy服务没有运行，启动服务"
+	service haproxy start
+fi
 
-# 检测haproxy服务是否正常运行
-if systemctl is-active --quiet haproxy; then
-  clear
+# 检查haproxy服务的状态
+service haproxy status >/dev/null 2>&1
+
+LocalIP=$(ip addr show | grep "inet " | grep -v 127.0.0.1 | awk '{print $2}' | cut -d '/' -f 1 | head -n 1)
+
+# 检查服务的返回状态码
+if [ $? -eq 0 ]; then
+  #clear
   echo "CloudflareSpeedTest 测速任务完成"
   echo $Require
   echo "HAProxy负载均衡 启动成功"
@@ -199,3 +249,4 @@ if systemctl is-active --quiet haproxy; then
 	((listenport++))
   done
 fi
+
