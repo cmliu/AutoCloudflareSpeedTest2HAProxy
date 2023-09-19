@@ -1,37 +1,22 @@
 global
-	log /dev/log	local0
-	log /dev/log	local1 notice
-	chroot /var/lib/haproxy
-	stats socket /run/haproxy/admin.sock mode 660 level admin expose-fd listeners
-	stats timeout 30s
-	user haproxy
-	group haproxy
-	daemon
-
-	# Default SSL material locations
-	ca-base /etc/ssl/certs
-	crt-base /etc/ssl/private
-
-	# Default ciphers to use on SSL-enabled listening sockets.
-	# For more information, see ciphers(1SSL). This list is from:
-	#  https://hynek.me/articles/hardening-your-web-servers-ssl-ciphers/
-	# An alternative list with additional directives can be obtained from
-	#  https://mozilla.github.io/server-side-tls/ssl-config-generator/?server=haproxy
-	ssl-default-bind-ciphers ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:RSA+AESGCM:RSA+AES:!aNULL:!MD5:!DSS
-	ssl-default-bind-options no-sslv3
-
+    log         127.0.0.1 local2
+    chroot      /root
+    pidfile     /tmp/haproxy.pid
+    maxconn     4000
+    user        root
+    daemon
 defaults
-    mode                    tcp
+    mode                    tcp    #TCP模式
     log                     global
-    option                  tcplog
+    option                  httplog
     option                  dontlognull
     option http-server-close
-    #option forwardfor       except 127.0.0.0/8
+    option forwardfor       except 127.0.0.0/8
     option                  redispatch
     retries                 2
     timeout http-request    10s
     timeout queue           1m
-    timeout connect         10s
+    timeout connect         2s     #上游TCP服务器连接等待时间                                      
     timeout client          1m
     timeout server          1m
     timeout http-keep-alive 10s
@@ -50,4 +35,3 @@ listen console
 #    bind 0.0.0.0:9000
 #    server 172.67.213.83:80 172.67.213.83:80 weight 5 check inter 1500 rise 1 fall 3 
 #    server 104.21.77.244:80 104.21.77.244:80 weight 5 check inter 1500 rise 1 fall 3 
-
