@@ -75,6 +75,7 @@ apt_install() {
 		echo "$1 安装完成！"
 	fi
 
+	
 }
 
 apt_install curl
@@ -146,9 +147,9 @@ if [ ! -d "log" ]; then
   mkdir -p "log"
 fi
 
-local_IP=$(curl -s 4.ipw.cn)
+local_IP=$(curl -m 10 -s 4.ipw.cn)
 #全球IP地理位置API请求和响应示例
-local_IP_geo=$(curl -s http://ip-api.com/json/${local_IP}?lang=zh-CN)
+local_IP_geo=$(curl -m 10 -s http://ip-api.com/json/${local_IP}?lang=zh-CN)
 # 使用jq解析JSON响应并提取所需的信息
 status=$(echo "$local_IP_geo" | jq -r '.status')
 
@@ -221,7 +222,7 @@ fi
 # 检查haproxy服务的状态
 service haproxy status >/dev/null 2>&1
 
-LocalIP=$(ip addr show | grep "inet " | grep -v 127.0.0.1 | awk '{print $2}' | cut -d '/' -f 1 | head -n 1)
+LocalIP=$(ip addr show | grep "inet " | grep -v 127.0.0.1 | grep -v "inet 172.17." | awk '{print $2}' | cut -d '/' -f 1 | head -n 1)
 
 # 检查服务的返回状态码
 if [ $? -eq 0 ]; then
@@ -237,4 +238,3 @@ if [ $? -eq 0 ]; then
 	((listenport++))
   done
 fi
-
