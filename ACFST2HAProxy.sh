@@ -19,10 +19,10 @@ os_id=$(awk -F= '/^ID=/{print $2}' /etc/os-release)
 Ubuntu=0
 # 检查不同的操作系统类型
 if [ "$os_id" == "ubuntu" ]; then
-    echo "这是一个Ubuntu系统"
+    #echo "Ubuntu系统"
 	Ubuntu=1
 else
-    echo "非Ubuntu环境,尝试使用openwrt环境运行"
+    echo "非Ubuntu系统,尝试使用openwrt环境运行"
 fi
 
 #带有自定义测速端口参数
