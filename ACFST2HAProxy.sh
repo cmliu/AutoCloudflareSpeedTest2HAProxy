@@ -75,7 +75,6 @@ apt_install() {
 		echo "$1 安装完成！"
 	fi
 
-	
 }
 
 apt_install curl
@@ -87,6 +86,9 @@ download_CloudflareST() {
     latest_version=$(curl -s https://api.github.com/repos/XIU2/CloudflareSpeedTest/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
     echo "最新版本号: $latest_version"
     # 下载文件到当前目录
+	if [ -z "$latest_version" ]; then
+		latest_version="v2.2.4"
+	fi
     curl -L -o CloudflareST_linux_amd64.tar.gz "${proxygithub}https://github.com/XIU2/CloudflareSpeedTest/releases/download/$latest_version/CloudflareST_linux_amd64.tar.gz"
     # 解压CloudflareST文件到当前目录
     tar -xvf CloudflareST_linux_amd64.tar.gz CloudflareST -C /
@@ -166,20 +168,6 @@ if [ "$status" = "success" ]; then
     fi
 else
     echo "你的IP地址是 $local_IP 地址判断请求失败，请自行确认为本机网络未使用代理..."
-fi
-
-# 检查haproxy用户是否存在
-if ! id -u haproxy > /dev/null 2>&1; then
-    echo "haproxy用户不存在，正在创建..."
-    useradd -M -s /usr/sbin/nologin haproxy
-    echo "haproxy用户已创建."
-fi
-
-# 检查haproxy组是否存在
-if ! getent group haproxy > /dev/null 2>&1; then
-    echo "haproxy组不存在，正在创建..."
-    groupadd haproxy
-    echo "haproxy组已创建."
 fi
 
 speedurl=${speedurlhttp}${speedurl}
