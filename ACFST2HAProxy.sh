@@ -144,7 +144,8 @@ fi
 
 speedurl=${speedurlhttp}${speedurl}
 result_csv="log/${port}.csv"
-
+Require="测速端口${port}, 需求${STcount}个优选IP, 下载速度至少${speedlower}mb/s, 延迟不超过${STmax}ms"
+echo $Require
 #./CloudflareST -tp 80 -url http://speed.cloudflare.com/__down?bytes=90000000 -dn 10 -tl 280 -p 0 -sl 10
 ./CloudflareST -tp $port -url $speedurl -dn $((STcount + speedqueue_max)) -tl $STmax -tlr $lossmax -p 0 -sl $speedlower -o $result_csv
 
@@ -188,6 +189,7 @@ LocalIP=$(ip addr show | grep "inet " | grep -v 127.0.0.1 | awk '{print $2}' | c
 if systemctl is-active --quiet haproxy; then
   clear
   echo "CloudflareSpeedTest 测速任务完成"
+  echo $Require
   echo "HAProxy负载均衡 启动成功"
   echo "负载均衡详细信息面板 http://${LocalIP}:8999"
   echo "负载均衡IP端口: ${LocalIP}:9000"
