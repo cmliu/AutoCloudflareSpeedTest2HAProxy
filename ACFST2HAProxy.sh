@@ -186,7 +186,9 @@ LocalIP=$(ip addr show | grep "inet " | grep -v 127.0.0.1 | awk '{print $2}' | c
 
 # 检测haproxy服务是否正常运行
 if systemctl is-active --quiet haproxy; then
-  echo "HAProxy负载均衡启动成功"
+  clear
+  echo "CloudflareSpeedTest 测速任务完成"
+  echo "HAProxy负载均衡 启动成功"
   echo "负载均衡详细信息面板 http://${LocalIP}:8999"
   echo "负载均衡IP端口: ${LocalIP}:9000"
   listenport=9001
