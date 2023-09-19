@@ -69,7 +69,7 @@ apt_install() {
 		if [ "$Ubuntu" -eq 1 ]; then
 			sudo apt install "$1" -y
 		else
-			oopkg install "$1"
+			opkg install "$1"
 		fi
 		
 		echo "$1 安装完成！"
