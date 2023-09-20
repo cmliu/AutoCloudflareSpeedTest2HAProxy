@@ -14,6 +14,17 @@ speedurl="speed.cloudflare.com/__down?bytes=$((speedtestMB * 1000000))" #官方�
 proxygithub="https://ghproxy.com/" #反代github加速地址，如果不需要可以将引号内容删除，如需修改请确保/结尾 例如"https://ghproxy.com/"
 ports=(443 2053 2083 2087 2096 8443) #判断协议使用,勿动
 
+# 选择客户端 CPU 架构
+archAffix(){
+    case "$(uname -m)" in
+        i386 | i686 ) echo '386' ;;
+        x86_64 | amd64 ) echo 'amd64' ;;
+        armv8 | arm64 | aarch64 ) echo 'arm64' ;;
+        s390x ) echo 's390x' ;;
+        * ) red "不支持的CPU架构!" && exit 1 ;;
+    esac
+}
+
 # 读取/etc/os-release文件中的ID字段
 os_id=$(awk -F= '/^ID=/{print $2}' /etc/os-release)
 Ubuntu=0
@@ -87,13 +98,13 @@ download_CloudflareST() {
     latest_version=$(curl -s https://api.github.com/repos/XIU2/CloudflareSpeedTest/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
     echo "最新版本号: $latest_version"
     # 下载文件到当前目录
-	if [ -z "$latest_version" ]; then
-		latest_version="v2.2.4"
-	fi
-    curl -L -o CloudflareST_linux_amd64.tar.gz "${proxygithub}https://github.com/XIU2/CloudflareSpeedTest/releases/download/$latest_version/CloudflareST_linux_amd64.tar.gz"
+    if [ -z "$latest_version" ]; then
+    	latest_version="v2.2.4"
+    fi
+    curl -L -o CloudflareST.tar.gz "${proxygithub}https://github.com/XIU2/CloudflareSpeedTest/releases/download/$latest_version/CloudflareST_linux_$(archAffix).tar.gz"
     # 解压CloudflareST文件到当前目录
-    tar -xvf CloudflareST_linux_amd64.tar.gz CloudflareST -C /
-	rm CloudflareST_linux_amd64.tar.gz
+    tar -xvf CloudflareST.tar.gz CloudflareST -C /
+    rm CloudflareST.tar.gz
 
 }
 
