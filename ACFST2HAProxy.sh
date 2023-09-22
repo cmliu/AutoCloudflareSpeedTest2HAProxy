@@ -7,6 +7,7 @@ STcount=6 #测速数量
 speedlower=8  #自定义下载速度下限,单位为mb/s
 STmax=230 #测速延迟允许的最大上限
 ###############################################################以下脚本内容，勿动#######################################################################
+HAProxyport=9000 #HAProxy负载均衡端口,默认9000
 speedqueue_max=2 #自定义测速IP冗余量
 lossmax=0.75  #自定义丢包几率上限；只输出低于/等于指定丢包率的 IP，范围 0.00~1.00，0 过滤掉任何丢包的 IP
 speedtestMB=50 #测速文件大小 单位MB，文件过大会拖延测试时长，过小会无法测出准确速度
@@ -195,7 +196,7 @@ if [ -f "haproxy.cfg" ]; then
 fi
 
 cp "haproxy.cfg.bk" "haproxy.cfg"
-echo -e "listen 9000\n    mode tcp\n    bind 0.0.0.0:9000" >> haproxy.cfg
+echo -e "listen ${HAProxyport}\n    mode tcp\n    bind 0.0.0.0:${HAProxyport}" >> haproxy.cfg
 
 # 创建临时文件并将要插入的内容写入临时文件
 tmpfile=$(mktemp)
@@ -242,7 +243,7 @@ if [ $? -eq 0 ]; then
   echo $Require
   echo "HAProxy负载均衡 启动成功"
   echo "负载均衡详细信息面板 http://${LocalIP}:8999"
-  echo "负载均衡IP端口: ${LocalIP}:9000"
+  echo "负载均衡IP端口: ${LocalIP}:${HAProxyport}"
   listenport=9001
   for ((i = 1; i <= STcount; i++)); do
     echo "${i}号优选IP端口: ${LocalIP}:${listenport}"
